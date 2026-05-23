@@ -31,13 +31,21 @@ A web-based cybersecurity tool that detects phishing websites using multiple sec
 
 ---
 
-## 📸 Screenshots
-(Add your images here)
+### 🏠 Home Page
+![Home](screenshots/Home.png.jpeg)
+
+### ⚡ Scan Page
+![Scan](screenshots/Scan.png.jpeg)
+
+### 📊 Result Page
+![Result](screenshots/result.png.jpeg)
+## 🚀 Purpose
+To detect phishing websites and protect users from cyber threats.
 
 ---
 
-## 🚀 Purpose
-To detect phishing websites and protect users from cyber threats.
+# 📌 Note
+This project is built for educational and cybersecurity awareness purposes.
 
 ---
 
