@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Phishing Guard Pro</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0d12;
+    color: #e8edf5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 20px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  header { padding: 20px 0; border-bottom: 1px solid #1e2738; margin-bottom: 30px; }
+  .logo { display: flex; align-items: center; gap: 15px; }
+  .logo-icon { font-size: 40px; }
+  .logo-text { font-size: 28px; font-weight: bold; }
+  .logo-text span { color: #00e5ff; }
+  .scan-box {
+    background: #0f1420;
+    border: 1px solid #2a3650;
+    border-radius: 16px;
+    padding: 30px;
+    margin: 20px 0;
+  }
+  .scan-row { display: flex; gap: 10px; }
+  .scan-input {
+    flex: 1;
+    padding: 15px;
+    background: #141926;
+    border: 1px solid #1e2738;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+  }
+  .scan-btn {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #0091ff, #00e5ff);
+    border: none;
+    border-radius: 10px;
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .scan-btn:hover { opacity: 0.9; }
+  .verdict-banner {
+    border-radius: 16px;
+    padding: 30px;
+    margin: 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .critical { background: rgba(255,61,90,0.1); border: 1px solid #ff3d5a; }
+  .warning { background: rgba(255,179,0,0.1); border: 1px solid #ffb300; }
+  .caution { background: rgba(255,140,0,0.1); border: 1px solid #ff8c00; }
+  .safe { background: rgba(0,255,136,0.1); border: 1px solid #00ff88; }
+  .score-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border: 3px solid;
+  }
+  .critical .score-ring { border-color: #ff3d5a; color: #ff3d5a; }
+  .warning .score-ring { border-color: #ffb300; color: #ffb300; }
+  .caution .score-ring { border-color: #ff8c00; color: #ff8c00; }
+  .safe .score-ring { border-color: #00ff88; color: #00ff88; }
+  .score-num { font-size: 32px; font-weight: bold; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .stat-card {
+    background: #111722;
+    border: 1px solid #1e2738;
+    border-radius: 12px;
+    padding: 15px;
+  }
+  .stat-label { font-size: 11px; color: #7a8ba8; margin-bottom: 5px; }
+  .stat-val { font-size: 24px; font-weight: bold; }
+  .stat-good { color: #00ff88; }
+  .stat-bad { color: #ff3d5a; }
+  .stat-warn { color: #ffb300; }
+  .findings-list { margin: 20px 0; }
+  .finding {
+    background: #111722;
+    border: 1px solid #1e2738;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 3px solid;
+  }
+  .finding.critical { border-left-color: #ff3d5a; }
+  .finding.warning { border-left-color: #ffb300; }
+  .finding.info { border-left-color: #0091ff; }
+  .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .detail-card {
+    background: #111722;
+    border: 1px solid #1e2738;
+    border-radius: 12px;
+    padding: 15px;
+  }
+  .detail-head { font-weight: bold; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #1e2738; }
+  .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .export-row { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+  .export-btn { padding: 12px 24px; border-radius: 10px; cursor: pointer; }
+  .btn-primary { background: #00e5ff; color: #000; border: none; }
+  .btn-outline { background: transparent; color: #7a8ba8; border: 1px solid #2a3650; }
+  .progress-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+  .step { background: #111722; border: 1px solid #1e2738; border-radius: 10px; padding: 15px; text-align: center; }
+  .step.active { border-color: #0091ff; color: #0091ff; }
+  .step.done { border-color: #00ff88; color: #00ff88; }
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0f1420;
+    border: 1px solid #2a3650;
+    border-radius: 10px;
+    padding: 15px;
+    display: none;
+  }
+  #toast.show { display: block; }
+  @media (max-width: 600px) {
+    .details-grid { grid-template-columns: 1fr; }
+    .scan-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🛡️</div>
+      <div>
+        <div class="logo-text">PHISHING <span>GUARD</span> PRO</div>
+        <div class="logo-sub">AI Threat Intelligence Platform</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Is This URL <span style="color:#00e5ff">Safe?</span></h1>
+    <p>Multi-layer phishing analysis using VirusTotal, WHOIS, SSL inspection, and AI-powered threat scoring.</p>
+  </div>
+
+  <div class="scan-box">
+    <div class="scan-row">
+      <input class="scan-input" id="urlInput" type="text" placeholder="https://example.com"/>
+      <button class="scan-btn" id="scanBtn" onclick="startScan()">⚡ SCAN</button>
+    </div>
+    <div style="margin-top: 10px">
+      <a onclick="loadDemo('safe')" style="color:#0091ff; cursor:pointer">safe URL</a> ·
+      <a onclick="loadDemo('medium')" style="color:#0091ff; cursor:pointer">medium risk</a> ·
+      <a onclick="loadDemo('phish')" style="color:#0091ff; cursor:pointer">phishing URL</a>
+    </div>
+  </div>
+
+  <div id="progressWrap" style="display:none">
+    <div class="progress-steps">
+      <div class="step" id="step1">VIRUSTOTAL</div>
+      <div class="step" id="step2">DOMAIN AGE</div>
+      <div class="step" id="step3">SSL CHECK</div>
+      <div class="step" id="step4">IP + REDIRECTS</div>
+    </div>
+  </div>
+
+  <div id="resultsWrap" style="display:none">
+    <div class="verdict-banner" id="verdictBanner">
+      <div>
+        <div id="verdictTag" style="font-size:12px">— SCANNING —</div>
+        <div id="verdictMain" style="font-size:24px; font-weight:bold">Analyzing URL...</div>
+        <div id="verdictUrl" style="font-size:12px"></div>
+      </div>
+      <div class="score-ring">
+        <div class="score-num" id="scoreNum">0</div>
+        <div>RISK</div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">VirusTotal</div><div class="stat-val" id="st-vt">—</div></div>
+      <div class="stat-card"><div class="stat-label">Domain Age</div><div class="stat-val" id="st-age">—</div></div>
+      <div class="stat-card"><div class="stat-label">SSL Status</div><div class="stat-val" id="st-ssl">—</div></div>
+      <div class="stat-card"><div class="stat-label">Redirects</div><div class="stat-val" id="st-redir">—</div></div>
+      <div class="stat-card"><div class="stat-label">IP Abuse</div><div class="stat-val" id="st-ip">—</div></div>
+      <div class="stat-card"><div class="stat-label">Protocol</div><div class="stat-val" id="st-https">—</div></div>
+    </div>
+
+    <div class="findings-list" id="findingsList"></div>
+
+    <div class="details-grid">
+      <div class="detail-card">
+        <div class="detail-head">Domain Info</div>
+        <div class="detail-row"><span>Domain:</span><span id="d-domain">—</span></div>
+        <div class="detail-row"><span>IP Address:</span><span id="d-ip">—</span></div>
+        <div class="detail-row"><span>Registered:</span><span id="d-created">—</span></div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-head">SSL Certificate</div>
+        <div class="detail-row"><span>Status:</span><span id="d-ssl-status">—</span></div>
+        <div class="detail-row"><span>Issuer:</span><span id="d-ssl-issuer">—</span></div>
+        <div class="detail-row"><span>Expires:</span><span id="d-ssl-exp">—</span></div>
+      </div>
+    </div>
+
+    <div class="export-row">
+      <button class="export-btn btn-primary" onclick="printReport()">PRINT</button>
+      <button class="export-btn btn-outline" onclick="copyJSON()">COPY JSON</button>
+      <button class="export-btn btn-outline" onclick="newScan()">NEW SCAN</button>
+    </div>
+  </div>
+
+  <footer style="margin-top:40px; text-align:center; color:#4a5a72">
+    PHISHING GUARD PRO &nbsp;·&nbsp; Information Security Tool
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let lastResult = null;
+  const DEMO_URLS = { safe: 'https://github.com', medium: 'https://secure-login-verify.netlify.app', phish: 'https://paypa1-login.verify-secure.com' };
+
+  function loadDemo(type) { document.getElementById('urlInput').value = DEMO_URLS[type]; }
+  function toast(msg) { let t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 3000); }
+  function setStep(active) { for(let i=1;i<=4;i++){ let el=document.getElementById('step'+i); el.className='step'; if(i<active) el.classList.add('done'); else if(i===active) el.classList.add('active'); } }
+  function resetBtn() { document.getElementById('scanBtn').disabled=false; document.getElementById('scanBtn').textContent='⚡ SCAN'; }
+  function delay(ms) { return new Promise(r=>setTimeout(r,ms)); }
+
+  async function startScan() {
+    let url = document.getElementById('urlInput').value.trim();
+    if(!url) { toast('Enter URL'); return; }
+    if(!url.startsWith('http')) { toast('URL must start with http:// or https://'); return; }
+
+    document.getElementById('resultsWrap').style.display='none';
+    document.getElementById('progressWrap').style.display='block';
+    document.getElementById('scanBtn').disabled=true;
+    document.getElementById('scanBtn').textContent='SCANNING...';
+
+    setStep(1); await delay(600);
+    setStep(2); await delay(600);
+    setStep(3); await delay(600);
+    setStep(4);
+
+    try {
+      let resp = await fetch('/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url}) });
+      if(!resp.ok) { let err=await resp.json(); toast(err.error || 'Scan failed'); resetBtn(); return; }
+      let data = await resp.json();
+      lastResult = data;
+      for(let i=1;i<=4;i++) document.getElementById('step'+i).className='step done';
+      await delay(400);
+      renderResults(data);
+    } catch(e) { toast('Cannot connect to server. Run: python app.py'); }
+    finally { resetBtn(); }
+  }
+
+  function renderResults(data) {
+    let { risk, details, url, domain, scanned_at } = data;
+    let { virustotal: vt, domain_age: age, ssl, redirects, ip_reputation: ip, https } = details;
+
+    document.getElementById('resultsWrap').style.display='block';
+    document.getElementById('progressWrap').style.display='none';
+
+    let banner = document.getElementById('verdictBanner');
+    let verdictClass = risk.verdict.toLowerCase();
+    banner.className = 'verdict-banner ' + verdictClass;
+    document.getElementById('verdictTag').textContent = '// ' + risk.verdict;
+    document.getElementById('verdictMain').textContent = risk.label;
+    document.getElementById('verdictUrl').textContent = url.length>70?url.slice(0,67)+'...':url;
+
+    let cur=0, target=risk.score;
+    let scoreEl=document.getElementById('scoreNum');
+    let anim=setInterval(()=>{ cur=Math.min(cur+2,target); scoreEl.textContent=cur+'%'; if(cur>=target) clearInterval(anim); },20);
+
+    document.getElementById('st-vt').textContent = vt.flagged||0;
+    document.getElementById('st-age').textContent = age.age_days>=999?'N/A':age.age_days;
+    document.getElementById('st-ssl').textContent = ssl.valid?'Valid':'Invalid';
+    document.getElementById('st-redir').textContent = redirects.count;
+    document.getElementById('st-ip').textContent = (ip.abuse_score||0)+'%';
+    document.getElementById('st-https').textContent = https?'HTTPS':'HTTP';
+
+    let fl = document.getElementById('findingsList');
+    fl.innerHTML = '';
+    if(risk.findings.length===0) fl.innerHTML='<div>✅ NO THREATS DETECTED</div>';
+    else risk.findings.forEach(f=>{ fl.innerHTML+=`<div class="finding ${f.severity}"><strong>${f.module}</strong><br>${f.detail}</div>`; });
+
+    document.getElementById('d-domain').textContent = domain;
+    document.getElementById('d-ip').textContent = ip.ip||'Unknown';
+    document.getElementById('d-created').textContent = age.created||'Unknown';
+    document.getElementById('d-ssl-status').textContent = ssl.valid?'✅ Valid':'❌ Invalid';
+    document.getElementById('d-ssl-issuer').textContent = (ssl.issuer||'Unknown').slice(0,24);
+    document.getElementById('d-ssl-exp').textContent = ssl.expires||'N/A';
+  }
+
+  function printReport() { window.print(); }
+  function copyJSON() { if(!lastResult) toast('No scan data'); else navigator.clipboard.writeText(JSON.stringify(lastResult,null,2)).then(()=>toast('Copied!')); }
+  function newScan() { document.getElementById('resultsWrap').style.display='none'; document.getElementById('urlInput').value=''; document.getElementById('urlInput').focus(); window.scrollTo({top:0}); }
+</script>
+</body>
+</html>
