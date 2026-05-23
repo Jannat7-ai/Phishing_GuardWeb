@@ -25,17 +25,17 @@ A web-based cybersecurity threat intelligence platform that analyzes URLs and de
 ## 📸 Screenshots
 
 ### 🏠 Home Page
-![Home Screen](./screenshots/Home.png.jpeg)
+![Home Screen](screenshots/Home.jpeg)
 
 ---
 
 ### ⚡ Scan Page
-![Scan](./screenshots/Scan.png.jpeg)
+![Scan](screenshots/Scan.jpeg)
 
 ---
 
 ### 📊 Result Page
-![Scan Result](./screenshots/Result.png.jpeg)
+![Scan Result](screenshots/Result.jpeg)
 
 ---
 
